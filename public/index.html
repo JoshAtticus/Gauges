@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Car Data</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="./js/main.js" defer></script>
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+        <div id="throttleDisplay"></div>
+        <div id="brakeDisplay"></div>
+        <div id="clutchDisplay"></div>
+
+        <div class="tachometer" id="tachometer"></div>
+        <img src="./images/tacho.png" alt="" id="tacho">
+        <div id="measurementRPM">x1000 rpm</div>
+        <img src="./images/arrow_off.png" alt="" id="rpmPointer">
+
+        <div class="speedometer" id="speedometer"></div>
+        <img src="./images/tacho.png" alt="" id="tacho2">
+        <div id="measurementSPEED">kmh</div>
+        <img src="./images/arrow_off.png" alt="" id="speedPointer">
+
+        <div class="waterTempMeter" id="waterTempMeter"></div>
+        <img src="./images/arrow_90_off.png" alt="" id="waterPointer">
+        <img src="./images/tacho_90.png" alt="" id="waterBG">
+
+        <div class="oilTempMeter" id="oilTempMeter"></div>
+        <img src="./images/arrow_90_off.png" alt="" id="oilPointer">
+        <img src="./images/tacho_90.png" alt="" id="oilBG">
+
+        <div class="fuelMeter" id="fuelMeter"></div>
+        <img src="./images/arrow_90_off.png" alt="" id="fuelPointer">
+        <img src="./images/tacho_90.png" alt="" id="fuelBG">
+
+        <div class="turboMeter" id="turboMeter"></div>
+        <img src="./images/tacho.png" alt="" id="tachoBoost">
+        <img src="./images/arrow_off.png" alt="" id="boostPointer">
+
+        <div id="speedDisplay"></div>
+        <div id="gearDisplay">N</div>
+        <img src="./images/overlay_on.png" alt="" id="displayOverlay">
+
+        <img src="" alt="" id="arrowLeft">
+        <img src="" alt="" id="arrowRight">
+        <img src="" alt="" id="hazard">
+        <img src="" alt="" id="fullbeam">
+        <img src="" alt="" id="tc">
+        <img src="" alt="" id="abs">
+        <img src="" alt="" id="oilWarn">
+        <img src="" alt="" id="waterWarn">
+        <img src="" alt="" id="fuelWarn">
+        <img src="" alt="" id="handbrake">
+        <img src="" alt="" id="check">
+</body>
+</html>
