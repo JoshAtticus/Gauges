@@ -81,8 +81,6 @@ server.on('message', (msg, rinfo) => {
 });
 
 server.on('listening', () => {
-    const address = server.address();
-    console.log(`Server listening on ${address.address}:${address.port}`);
     serverLoaded = true;
 });
 
@@ -105,7 +103,8 @@ app.get("/", (req, res) => {
 
 // Start the dashboard site
 serverhttp.listen(dashboardPort, () => {
-    console.log(`Dashboard running at \x1b[0;94mhttp://${host}:${dashboardPort}\x1b[0m (ctrl+click to open in browser)`);
+    console.log(`Dashboard running at \x1b[0;94mhttp://${host}:${dashboardPort}\x1b[0m`);
+    console.log("This widow is required for the dash to function.")
 });
 
 server.bind(outGaugePort);
