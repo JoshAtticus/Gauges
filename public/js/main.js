@@ -40,7 +40,7 @@ function performAdjustment(data) {
     return data;
 }
 
-var maxRpm = 0;
+var maxRpm = 7000;
 var maxBoost = 0;
 var currentGear = "N";
 var data2;
@@ -57,6 +57,12 @@ genOilTempNumbers();
 genFuelNumbers();
 genWaterNumbers();
 
+window.addEventListener('resize', () => {
+    genSpeedoNumbers();
+    genRpmNumbers();
+    genBoostNumbers();
+});
+
 function updateDisplays(data2) {
     if (data2.rpmMax != maxRpm) {
         maxRpm = data2.rpmMax;
@@ -66,31 +72,30 @@ function updateDisplays(data2) {
     if (data2.turboMax != maxBoost) {
         maxBoost = data2.turboMax;
         genBoostNumbers();
-        genBoostNegative() ;
     };
-    var throttle = document.getElementById("throttleDisplay");
-    var brake = document.getElementById("brakeDisplay");
-    var clutch = document.getElementById("clutchDisplay");
-    var handbrake = document.getElementById("handbrake");
-    var oilWarn = document.getElementById("oilWarn");
-    var waterWarn = document.getElementById("waterWarn");
-    var fuelWarn = document.getElementById("fuelWarn");
-    var signalL = document.getElementById("arrowLeft");
-    var signalR = document.getElementById("arrowRight");
-    var hazard = document.getElementById("hazard");
-    var abs = document.getElementById("abs");
-    var fullbeam = document.getElementById("fullbeam");
-    var tc = document.getElementById("tc");
-    var rpmArrow = document.getElementById("rpmPointer");
-    var speedArrow = document.getElementById("speedPointer");
-    var fuelArrow = document.getElementById("fuelPointer");
-    var waterArrow = document.getElementById("waterPointer");
-    var oilArrow = document.getElementById("oilPointer");
-    var boostArrow = document.getElementById("boostPointer");
-    var speedDisplay = document.getElementById("speedDisplay");
-    var gearDisplay = document.getElementById("gearDisplay");
-    var gearOverlay = document.getElementById("displayOverlay");
-    var check = document.getElementById("check");
+    const throttle = document.getElementById("throttleDisplay");
+    const brake = document.getElementById("brakeDisplay");
+    const clutch = document.getElementById("clutchDisplay");
+    const handbrake = document.getElementById("handbrake");
+    const oilWarn = document.getElementById("oilWarn");
+    const waterWarn = document.getElementById("waterWarn");
+    const fuelWarn = document.getElementById("fuelWarn");
+    const signalL = document.getElementById("arrowLeft");
+    const signalR = document.getElementById("arrowRight");
+    const hazard = document.getElementById("hazard");
+    const abs = document.getElementById("abs");
+    const fullbeam = document.getElementById("fullbeam");
+    const tc = document.getElementById("tc");
+    const rpmArrow = document.getElementById("rpmPointer");
+    const speedArrow = document.getElementById("speedPointer");
+    const fuelArrow = document.getElementById("fuelPointer");
+    const waterArrow = document.getElementById("waterPointer");
+    const oilArrow = document.getElementById("oilPointer");
+    const boostArrow = document.getElementById("boostPointer");
+    const speedDisplay = document.getElementById("speedDisplay");
+    const gearDisplay = document.getElementById("gearDisplay");
+    const gearOverlay = document.getElementById("displayOverlay");
+    const check = document.getElementById("check");
     const turboMeter = document.getElementById("turboMeter");
     const tachoBoost = document.getElementById("tachoBoost");
     
@@ -114,7 +119,7 @@ function updateDisplays(data2) {
     };
     gearDisplay.textContent = currentGear;
 
-    rpmArrow.style.transform = `rotate(${(data2.rpm / maxRpm) * 270 - 180}deg)`;
+    rpmArrow.style.transform = `translate(-50%, -50%) scale(1.3) rotate(${(data2.rpm / maxRpm) * 270 - 180}deg)`;
 
     fuelArrow.style.transform = `rotate(${(data2.fuel / 1) * 90 - 45}deg)`;
 
@@ -128,13 +133,13 @@ function updateDisplays(data2) {
 
     if (speed > 250) {
         if (speed > 500) {
-            speedArrow.style.transform = `rotate(${((speed - 500) / 19500) * 270 + 180}deg)`;
-            if (speed > 20000) {speedArrow.style.transform = `rotate(90deg)`;}
+            speedArrow.style.transform = `translate(-50%, -50%) scale(1.3) rotate(${((speed - 500) / 19500) * 270 + 180}deg)`;
+            if (speed > 20000) {speedArrow.style.transform = `translate(-50%, -50%) scale(1.3) rotate(90deg)`;}
         } else {
-        speedArrow.style.transform = `rotate(${((speed - 250) / 250) * 90 + 90}deg)`;
+        speedArrow.style.transform = `translate(-50%, -50%) scale(1.3) rotate(${((speed - 250) / 250) * 90 + 90}deg)`;
         };
     } else {
-        speedArrow.style.transform = `rotate(${(speed / 250) * 270 - 180}deg)`;
+        speedArrow.style.transform = `translate(-50%, -50%) scale(1.3) rotate(${(speed / 250) * 270 - 180}deg)`;
     };
     
     if (data2.flags.hasTurbo) {
@@ -267,16 +272,22 @@ var spdDisplayText = document.getElementById("measurementSPEED");
 
 function updateTickColor(speed) {
     if (!speed) speed = 0;
-    if (data2?.showLights?.includes("BATTERY")) {
+    if (data2.showLights?.includes("BATTERY")) {
         editClassProperty(".tick", "backgroundColor", "#000000");
         editClassProperty(".number", "color", "#000000");
         editClassProperty(".tickspd", "backgroundColor", "#000000");
         editClassProperty(".numberspd", "color", "#000000");
+        editClassProperty(".numberRpm", "color", "#000000");
+        editClassProperty(".tickRpm", "backgroundColor", "#000000");
+        editClassProperty(".numberTurbo", "color", "#000000");
     } else {
         editClassProperty(".tick", "backgroundColor", "#FF0000");
         editClassProperty(".number", "color", "#FF0000");
         editClassProperty(".tickspd", "backgroundColor", "#FF0000");
         editClassProperty(".numberspd", "color", "#FF0000");
+        editClassProperty(".numberRpm", "color", "#FF0000");
+        editClassProperty(".tickRpm", "backgroundColor", "#FF0000");
+        editClassProperty(".numberTurbo", "color", "#FF0000");
     };
 
     if (speed > 250) {
@@ -315,9 +326,12 @@ function updateTickColor(speed) {
 function genRpmNumbers() {
     const tachometer = document.getElementById("tachometer");
     tachometer.replaceChildren();
-    const radius = 215;
-    const centerX = 175;
-    const centerY = 175;
+
+    const width = Math.floor(Number(window.getComputedStyle(speedometer).width.slice(0, -2)));
+
+    const radius = width / 1.95;
+    const centerX = width / 2;
+    const centerY = width / 2;
     const maxRPM = maxRpm;
     const step = 1000;
     const tickDistance = 10;
@@ -337,7 +351,7 @@ function genRpmNumbers() {
         let y = centerY + radius * Math.sin(radians);
 
         let numberElement = document.createElement("div");
-        numberElement.classList.add("number");
+        numberElement.classList.add("numberRpm");
         numberElement.innerText = Math.floor(rpm / 1000);
         numberElement.style.left = `${x}px`;
         numberElement.style.top = `${y}px`;
@@ -369,12 +383,15 @@ function genRpmNumbers() {
 
 function genSpeedoNumbers() {
     const speedometer = document.getElementById("speedometer");
-    
-    const radius = 220;
-    const centerX = 175;
-    const centerY = 175;
+    speedometer.replaceChildren();
+
+    const width = Math.floor(Number(window.getComputedStyle(speedometer).width.slice(0, -2)));
+
+    const radius = width / 2.25
+    const centerX = width / 2;
+    const centerY = width / 2;
     const max = 250;
-    const tickDistance = 10;
+    const tickDistance = width / 3.5;
 
     const startAngle = -180;
     const endAngle = 90;
@@ -398,19 +415,19 @@ function genSpeedoNumbers() {
         let tickElement = document.createElement("div");
         tickElement.classList.add("tickspd");
 
-        const tickLength = 40;
+        const tickLength = Math.floor(width) / 200;
 
-        let tickX = centerX + (radius + tickDistance - tickLength) * Math.cos(radians);
-        let tickY = centerY + (radius + tickDistance - tickLength) * Math.sin(radians);
+        let tickX = centerX + tickDistance * Math.cos(radians);
+        let tickY = centerY + tickDistance * Math.sin(radians);
 
         tickElement.style.position = 'absolute';
-        tickElement.style.width = `${tickLength}px`;
+        tickElement.style.width = `${tickLength}vw`;
         tickElement.style.height = '4px';
 
         tickElement.style.left = `${tickX}px`;
         tickElement.style.top = `${tickY}px`;
 
-        let angleInDegrees = angle + 180;
+        let angleInDegrees = angle;
         tickElement.style.transformOrigin = "0% 50%";
         tickElement.style.transform = `rotate(${angleInDegrees}deg)`;
 
@@ -420,13 +437,15 @@ function genSpeedoNumbers() {
 
 function genSpeedoNumbersExtra() {
     const speedometer = document.getElementById("speedometer");
-    
-    const radius = 220;
-    const centerX = 175;
-    const centerY = 175;
-    const min = 250;
+
+    const width = Math.floor(Number(window.getComputedStyle(speedometer).width.slice(0, -2)));
+
+    const radius = width / 2.25
+    const centerX = width / 2;
+    const centerY = width / 2;
+    const min = 250
     const max = 500;
-    const tickDistance = 10;
+    const tickDistance = width / 3.5;
 
     const startAngle = 90;
     const endAngle = 180;
@@ -450,19 +469,19 @@ function genSpeedoNumbersExtra() {
         let tickElement = document.createElement("div");
         tickElement.classList.add("tick2");
 
-        const tickLength = 40;
+        const tickLength = Math.floor(width) / 200;
 
-        let tickX = centerX + (radius + tickDistance - tickLength) * Math.cos(radians);
-        let tickY = centerY + (radius + tickDistance - tickLength) * Math.sin(radians);
+        let tickX = centerX + tickDistance * Math.cos(radians);
+        let tickY = centerY + tickDistance * Math.sin(radians);
 
         tickElement.style.position = 'absolute';
-        tickElement.style.width = `${tickLength}px`;
+        tickElement.style.width = `${tickLength}vw`;
         tickElement.style.height = '4px';
 
         tickElement.style.left = `${tickX}px`;
         tickElement.style.top = `${tickY}px`;
 
-        let angleInDegrees = angle + 180;
+        let angleInDegrees = angle;
         tickElement.style.transformOrigin = "0% 50%";
         tickElement.style.transform = `rotate(${angleInDegrees}deg)`;
 
@@ -473,12 +492,14 @@ function genSpeedoNumbersExtra() {
 function genSpeedoNumbersExtra_What_The_F_Bro() {
     const speedometer = document.getElementById("speedometer");
     
-    const radius = 220;
-    const centerX = 175;
-    const centerY = 175;
-    const min = 500;
+    const width = Math.floor(Number(window.getComputedStyle(speedometer).width.slice(0, -2)));
+
+    const radius = width / 2.25
+    const centerX = width / 2;
+    const centerY = width / 2;
+    const min = 500
     const max = 20000;
-    const tickDistance = 10;
+    const tickDistance = width / 3.5;
 
     const startAngle = -180;
     const endAngle = 90;
@@ -502,19 +523,19 @@ function genSpeedoNumbersExtra_What_The_F_Bro() {
         let tickElement = document.createElement("div");
         tickElement.classList.add("tick3");
 
-        const tickLength = 40;
+        const tickLength = Math.floor(width) / 200;
 
-        let tickX = centerX + (radius + tickDistance - tickLength) * Math.cos(radians);
-        let tickY = centerY + (radius + tickDistance - tickLength) * Math.sin(radians);
+        let tickX = centerX + tickDistance * Math.cos(radians);
+        let tickY = centerY + tickDistance * Math.sin(radians);
 
         tickElement.style.position = 'absolute';
-        tickElement.style.width = `${tickLength}px`;
+        tickElement.style.width = `${tickLength}vw`;
         tickElement.style.height = '4px';
 
         tickElement.style.left = `${tickX}px`;
         tickElement.style.top = `${tickY}px`;
 
-        let angleInDegrees = angle + 180;
+        let angleInDegrees = angle;
         tickElement.style.transformOrigin = "0% 50%";
         tickElement.style.transform = `rotate(${angleInDegrees}deg)`;
 
@@ -691,12 +712,14 @@ function genBoostNumbers() {
     const turboMeter = document.getElementById("turboMeter");
     turboMeter.replaceChildren();
 
-    const radius = 132;
-    const centerX = 125;
-    const centerY = 125;
-    const min = 0;
+    const width = Math.floor(Number(window.getComputedStyle(turboMeter).width.slice(0, -2)));
+
+    const radius = width / 1.85
+    const centerX = width / 2;
+    const centerY = width / 2;
     const max = maxBoost.toFixed(1); 
-    const tickDistance = -5;
+    const tickDistance = width / 2.5;
+    const min = 0;
 
     const startAngle = -90;
     const endAngle = 90;
@@ -711,23 +734,22 @@ function genBoostNumbers() {
         let y = centerY + radius * Math.sin(radians);
 
         let numberElement = document.createElement("div");
-        numberElement.classList.add("number");
+        numberElement.classList.add("numberTurbo");
         numberElement.innerText = num;
         numberElement.style.left = `${x}px`;
         numberElement.style.top = `${y}px`;
-        numberElement.style.fontSize = "20px";
         turboMeter.appendChild(numberElement);
 
         let tickElement = document.createElement("div");
         tickElement.classList.add("tick");
 
-        const tickLength = 30;
+        const tickLength = Math.floor(width) / 200;
 
-        let tickX = centerX + (radius + tickDistance - tickLength) * Math.cos(radians);
-        let tickY = centerY + (radius + tickDistance - tickLength) * Math.sin(radians);
+        let tickX = centerX + tickDistance * Math.cos(radians);
+        let tickY = centerY + tickDistance * Math.sin(radians);
 
         tickElement.style.position = 'absolute';
-        tickElement.style.width = `${tickLength}px`;
+        tickElement.style.width = `${tickLength}vw`;
         tickElement.style.height = '2px';
 
         tickElement.style.left = `${tickX}px`;
@@ -738,18 +760,22 @@ function genBoostNumbers() {
         tickElement.style.transform = `rotate(${angleInDegrees}deg)`;
 
         turboMeter.appendChild(tickElement);
+
+        genBoostNegative()
     });
 };
 
 function genBoostNegative() {
     const turboMeter = document.getElementById("turboMeter");
 
-    const radius = 132;
-    const centerX = 125;
-    const centerY = 125;
+    const width = Math.floor(Number(window.getComputedStyle(turboMeter).width.slice(0, -2)));
+
+    const radius = width / 1.85
+    const centerX = width / 2;
+    const centerY = width / 2;
+    const max = 0
+    const tickDistance = width / 2.5;
     const min = -1;
-    const max = 0; 
-    const tickDistance = -5;
 
     const startAngle = -180;
     const endAngle = -90;
@@ -764,23 +790,22 @@ function genBoostNegative() {
         let y = centerY + radius * Math.sin(radians);
 
         let numberElement = document.createElement("div");
-        numberElement.classList.add("number");
-        numberElement.innerText = num == max ? "!" : num;
+        numberElement.classList.add("numberTurbo");
+        numberElement.innerText = num;
         numberElement.style.left = `${x}px`;
         numberElement.style.top = `${y}px`;
-        numberElement.style.fontSize = "20px";
         turboMeter.appendChild(numberElement);
 
         let tickElement = document.createElement("div");
         tickElement.classList.add("tick");
 
-        const tickLength = 30;
+        const tickLength = Math.floor(width) / 200;
 
-        let tickX = centerX + (radius + tickDistance - tickLength) * Math.cos(radians);
-        let tickY = centerY + (radius + tickDistance - tickLength) * Math.sin(radians);
+        let tickX = centerX + tickDistance * Math.cos(radians);
+        let tickY = centerY + tickDistance * Math.sin(radians);
 
         tickElement.style.position = 'absolute';
-        tickElement.style.width = `${tickLength}px`;
+        tickElement.style.width = `${tickLength}vw`;
         tickElement.style.height = '2px';
 
         tickElement.style.left = `${tickX}px`;
