@@ -41,7 +41,7 @@ function performAdjustment(data) {
 }
 
 var maxRpm = 7000;
-var maxBoost = 0;
+var maxBoost = 1;
 var currentGear = "N";
 var data2;
 const socket = io();
