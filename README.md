@@ -2,8 +2,8 @@
 A simple dashboard for BeamNG.drive.  
 
 ## Requirements  
-- [Node.js](https://nodejs.org/en)  
-- The BeamNG.drive mod *(awaiting release)*  
+- [Node.js](https://nodejs.org/en)
+- [The BeamNG.drive mod](https://www.beamng.com/resources/external-dashboard.33977/)
 
 ## How to Use  
 1. Extract and run `start.bat`. This will install the dependencies, run the app, and provide a link in the command prompt.  
