@@ -35,6 +35,7 @@ if __name__ == "__main__":
         print("Requesting administrator privileges...")
         ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
         print("Success (?) Opening in new window and exiting, if new window doesn't open it's because you pressed No on the last prompt.")
+        print("You may now close this window.")
         sys.exit(0)
 
     install_packages()
