@@ -4,55 +4,133 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Live Car Data</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-gauge@0.3.0/dist/chartjs-gauge.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="/socket.io/socket.io.js"></script>
     <script src="./js/main.js" defer></script>
     <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
+    <!-- Turn signals -->
+    <div id="arrowLeft" class="turn-signal left"><i class="fas fa-arrow-left"></i></div>
+    <div id="arrowRight" class="turn-signal right"><i class="fas fa-arrow-right"></i></div>
+    <div id="hazard" class="hazard-light"><i class="fas fa-triangle-exclamation"></i></div>
+
+    <!-- Main dashboard -->
+    <div class="dashboard">
+        <!-- Speedometer -->
+        <div class="gauge-container">
+            <canvas id="speedGauge" width="300" height="300"></canvas>
+            <div class="gauge-label">km/h</div>
+        </div>
+
+        <!-- Center info -->
+        <div class="center-info">
+            <div id="speedDisplay" class="digital-speed">0</div>
+            <div id="gearDisplay" class="gear-display">N</div>
+            
+            <!-- Warning lights -->
+            <div class="warning-lights">
+                <div id="tc" class="warning-light"><i class="fas fa-car-side"></i></div>
+                <div id="abs" class="warning-light"><i class="fas fa-car-burst"></i></div>
+                <div id="fullbeam" class="warning-light"><i class="fas fa-lightbulb"></i></div>
+                <div id="handbrake" class="warning-light"><i class="fas fa-square-parking"></i></div>
+            </div>
+        </div>
+
+        <!-- Tachometer -->
+        <div class="gauge-container">
+            <canvas id="rpmGauge" width="300" height="300"></canvas>
+            <div class="gauge-label">x1000 rpm</div>
+        </div>
+    </div>
+
+    <!-- Hidden elements for compatibility -->
+    <div style="display: none;">
+        <div class="speedometer" id="speedometer"></div>
+        <div class="tachometer" id="tachometer"></div>
+        <div id="speedPointer"></div>
+        <div id="rpmPointer"></div>
         <div id="throttleDisplay"></div>
         <div id="brakeDisplay"></div>
         <div id="clutchDisplay"></div>
-
-        <div class="tachometer" id="tachometer"></div>
-        <img src="./images/tacho.png" alt="" id="tacho">
+        <div id="waterTempMeter"></div>
+        <div id="oilTempMeter"></div>
+        <div id="fuelMeter"></div>
+        <div id="turboMeter"></div>
+        <div id="measurementSPEED">km/h</div>
         <div id="measurementRPM">x1000 rpm</div>
-        <img src="./images/arrow_off.png" alt="" id="rpmPointer">
+        <div id="oilWarn"></div>
+        <div id="waterWarn"></div>
+        <div id="fuelWarn"></div>
+    </div>
 
-        <div class="speedometer" id="speedometer"></div>
-        <img src="./images/tacho.png" alt="" id="tacho2">
-        <div id="measurementSPEED">kmh</div>
-        <img src="./images/arrow_off.png" alt="" id="speedPointer">
+    <script>
+        // Initialize gauges
+        let speedGauge, rpmGauge;
+        
+        // Speed gauge
+        const speedCtx = document.getElementById('speedGauge').getContext('2d');
+        speedGauge = new Chart(speedCtx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [0, 240],
+                    backgroundColor: ['#00ff88', '#333'],
+                    borderWidth: 0,
+                    cutout: '80%'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                rotation: -90,
+                circumference: 180,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: false }
+                }
+            }
+        });
 
-        <div class="waterTempMeter" id="waterTempMeter"></div>
-        <img src="./images/arrow_90_off.png" alt="" id="waterPointer">
-        <img src="./images/tacho_90.png" alt="" id="waterBG">
+        // RPM gauge
+        const rpmCtx = document.getElementById('rpmGauge').getContext('2d');
+        rpmGauge = new Chart(rpmCtx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [0, 8000],
+                    backgroundColor: ['#ff4444', '#333'],
+                    borderWidth: 0,
+                    cutout: '80%'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                rotation: -90,
+                circumference: 180,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: false }
+                }
+            }
+        });
 
-        <div class="oilTempMeter" id="oilTempMeter"></div>
-        <img src="./images/arrow_90_off.png" alt="" id="oilPointer">
-        <img src="./images/tacho_90.png" alt="" id="oilBG">
+        // Update functions for compatibility
+        window.updateSpeedGauge = function(speed) {
+            speedGauge.data.datasets[0].data = [speed, 240 - speed];
+            speedGauge.update('none');
+        };
 
-        <div class="fuelMeter" id="fuelMeter"></div>
-        <img src="./images/arrow_90_off.png" alt="" id="fuelPointer">
-        <img src="./images/tacho_90.png" alt="" id="fuelBG">
-
-        <div class="turboMeter" id="turboMeter"></div>
-        <img src="./images/tacho.png" alt="" id="tachoBoost">
-        <img src="./images/arrow_off.png" alt="" id="boostPointer">
-
-        <div id="speedDisplay"></div>
-        <div id="gearDisplay">N</div>
-        <img src="./images/overlay_on.png" alt="" id="displayOverlay">
-
-        <img src="./images/blinker_off.png" alt="" id="arrowLeft">
-        <img src="./images/blinker_off.png" alt="" id="arrowRight">
-        <img src="./images/hazard_off.png" alt="" id="hazard">
-        <img src="./images/fullbeam_off.png" alt="" id="fullbeam">
-        <img src="./images/tc_off.png" alt="" id="tc">
-        <img src="./images/abs_off.png" alt="" id="abs">
-        <img src="./images/oilWarn_off.png" alt="" id="oilWarn">
-        <img src="./images/waterWarn_off.png" alt="" id="waterWarn">
-        <img src="./images/fuel_off.png" alt="" id="fuelWarn">
-        <img src="./images/handbrake_off.png" alt="" id="handbrake">
-        <img src="./images/check_off.png" alt="" id="check">
+        window.updateRpmGauge = function(rpm) {
+            rpmGauge.data.datasets[0].data = [rpm, 8000 - rpm];
+            rpmGauge.update('none');
+        };
+    </script>
 </body>
 </html>

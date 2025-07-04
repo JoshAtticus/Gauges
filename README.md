@@ -1,5 +1,5 @@
-# Beam-Dash  
-A simple dashboard for BeamNG.drive.  
+# Gauges
+Turn a phone, tablet or other secondary screen into a dashboard for BeamNG.Drive
 
 ## Requirements  
 - [Node.js](https://nodejs.org/en)

@@ -1,12 +1,12 @@
 {
-  "name": "dash",
+  "name": "gauges",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "JoshAtticus",
   "license": "GPL-3.0-only",
   "dependencies": {
     "express": "^4.21.2",

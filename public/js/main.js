@@ -7,7 +7,6 @@ function performAdjustment(data) {
         TC: 1 << 4,
         SIGNAL_L: 1 << 5,
         SIGNAL_R: 1 << 6,
-        CHECK: 1 << 7,
         OILWARN: 1 << 8,
         BATTERY: 1 << 9,
         ABS: 1 << 10,
@@ -50,62 +49,32 @@ socket.on("update", (data) => {
     updateDisplays(data2);
 });
 
-genSpeedoNumbers();
-genSpeedoNumbersExtra();
-genSpeedoNumbersExtra_What_The_F_Bro();
-genOilTempNumbers();
-genFuelNumbers();
-genWaterNumbers();
-
-window.addEventListener('resize', () => {
-    genSpeedoNumbers();
-    genRpmNumbers();
-    genBoostNumbers();
-});
-
 function updateDisplays(data2) {
     if (data2.rpmMax != maxRpm) {
         maxRpm = data2.rpmMax;
         genRpmNumbers();
-        updateTickColor();
-    };
+    }
     if (data2.turboMax != maxBoost) {
         maxBoost = data2.turboMax;
         genBoostNumbers();
-    };
-    const throttle = document.getElementById("throttleDisplay");
-    const brake = document.getElementById("brakeDisplay");
-    const clutch = document.getElementById("clutchDisplay");
-    const handbrake = document.getElementById("handbrake");
-    const oilWarn = document.getElementById("oilWarn");
-    const waterWarn = document.getElementById("waterWarn");
-    const fuelWarn = document.getElementById("fuelWarn");
-    const signalL = document.getElementById("arrowLeft");
-    const signalR = document.getElementById("arrowRight");
-    const hazard = document.getElementById("hazard");
-    const abs = document.getElementById("abs");
-    const fullbeam = document.getElementById("fullbeam");
-    const tc = document.getElementById("tc");
-    const rpmArrow = document.getElementById("rpmPointer");
-    const speedArrow = document.getElementById("speedPointer");
-    const fuelArrow = document.getElementById("fuelPointer");
-    const waterArrow = document.getElementById("waterPointer");
-    const oilArrow = document.getElementById("oilPointer");
-    const boostArrow = document.getElementById("boostPointer");
+    }
+
+    // Update speed display and gauge
+    var speed = Math.round((3.6 * data2.speed) * 10) / 10; 
     const speedDisplay = document.getElementById("speedDisplay");
     const gearDisplay = document.getElementById("gearDisplay");
-    const gearOverlay = document.getElementById("displayOverlay");
-    const check = document.getElementById("check");
-    const turboMeter = document.getElementById("turboMeter");
-    const tachoBoost = document.getElementById("tachoBoost");
     
-
-    throttle.style.background = `linear-gradient(to top, lime ${(data2.throttle * 100).toFixed(0)}%, #0e1011 ${(data2.throttle * 100).toFixed(0)}%)`
-    brake.style.background = `linear-gradient(to top, red ${(data2.brake * 100).toFixed(0)}%, #0e1011 ${(data2.brake * 100).toFixed(0)}%)`
-    clutch.style.background = `linear-gradient(to top, blue ${(data2.clutch * 100).toFixed(0)}%, #0e1011 ${(data2.clutch * 100).toFixed(0)}%)`
-    var speed = Math.round((3.6 * data2.speed) * 10) / 10; 
     speedDisplay.textContent = (speed + 0.5) | 0;
 
+    // Update Chart.js gauges if they exist
+    if (window.updateSpeedGauge) {
+        window.updateSpeedGauge(Math.min(speed, 240));
+    }
+    if (window.updateRpmGauge) {
+        window.updateRpmGauge(Math.min(data2.rpm, maxRpm));
+    }
+
+    // Update gear display
     switch (data2.gear) {
         case "-1":
             currentGear = "R";
@@ -116,146 +85,65 @@ function updateDisplays(data2) {
         default:
             currentGear = data2.gear;
             break;
-    };
+    }
     gearDisplay.textContent = currentGear;
 
-    rpmArrow.style.transform = `translate(-50%, -50%) scale(1.3) rotate(${(data2.rpm / maxRpm) * 270 - 180}deg)`;
+    // Update turn signals
+    const signalL = document.getElementById("arrowLeft");
+    const signalR = document.getElementById("arrowRight");
+    const hazard = document.getElementById("hazard");
 
-    fuelArrow.style.transform = `rotate(${(data2.fuel / 1) * 90 - 45}deg)`;
-
-    waterArrow.style.transform = `rotate(${(data2.engTemp / 130) * 90 - 45}deg)`;
-
-    if (data2.oilTemp < 130) {
-        oilArrow.style.transform = `rotate(${(data2.oilTemp / -130) * 90 - 0}deg)`;
-    } else {
-        oilArrow.style.transform = `rotate(-90deg)`;
-    };
-
-    if (speed > 250) {
-        if (speed > 500) {
-            speedArrow.style.transform = `translate(-50%, -50%) scale(1.3) rotate(${((speed - 500) / 19500) * 270 + 180}deg)`;
-            if (speed > 20000) {speedArrow.style.transform = `translate(-50%, -50%) scale(1.3) rotate(90deg)`;}
-        } else {
-        speedArrow.style.transform = `translate(-50%, -50%) scale(1.3) rotate(${((speed - 250) / 250) * 90 + 90}deg)`;
-        };
-    } else {
-        speedArrow.style.transform = `translate(-50%, -50%) scale(1.3) rotate(${(speed / 250) * 270 - 180}deg)`;
-    };
-    
-    if (data2.flags.hasTurbo) {
-        boostArrow.removeAttribute("hidden");
-        turboMeter.removeAttribute("hidden");
-        tachoBoost.removeAttribute("hidden");
-
-        if (data2.turbo >= 0) {
-            boostArrow.style.transform = `rotate(${(data2.turbo / maxBoost) * 180 - 90}deg)`;
-        } else {
-            boostArrow.style.transform = `rotate(${(data2.turbo / 1) * 90 - 90}deg)`;
-        };
-    } else {
-        boostArrow.setAttribute("hidden", true);
-        turboMeter.setAttribute("hidden", true);
-        tachoBoost.setAttribute("hidden", true);
-    };
-
-    if (data2.showLights.includes("BATTERY")) {
-        rpmArrow.src = "./images/arrow_off.png";
-        boostArrow.src = "./images/arrow_off.png";
-        speedArrow.src = "./images/arrow_off.png";
-        fuelArrow.src = "./images/arrow_90_off.png";
-        oilArrow.src = "./images/arrow_90_off.png";
-        waterArrow.src = "./images/arrow_90_off.png";
-        gearOverlay.src = "./images/overlay_on.png";
-    } else {
-        if (data2.showLights.includes("SHIFT")) {
-            rpmArrow.src = "./images/arrow_shift.png";
-        } else {
-            rpmArrow.src = "./images/arrow_on.png";
-        };
-        
-        speedArrow.src = "./images/arrow_on.png";
-        boostArrow.src = "./images/arrow_shift.png";
-        fuelArrow.src = "./images/arrow_90_on.png";
-        oilArrow.src = "./images/arrow_90_on.png";
-        waterArrow.src = "./images/arrow_90_on.png";
-        gearOverlay.src = "./images/overlay_off.png";
-    };
-
-    if (data2.showLights.includes("SIGNAL_L") && !data2.showLights.includes("SIGNAL_R")) {
-        signalL.src = "./images/blinker_on.png";
-    }
-    else {
-        signalL.src = "./images/blinker_off.png";
-    };
-
-    if (data2.showLights.includes("SIGNAL_R") && !data2.showLights.includes("SIGNAL_L")) {
-        signalR.src = "./images/blinker_on.png";
-    }
-    else {
-        signalR.src = "./images/blinker_off.png";
-    };
+    // Clear all signal states first
+    signalL.classList.remove("active");
+    signalR.classList.remove("active");
+    hazard.classList.remove("active");
 
     if (data2.showLights.includes("SIGNAL_L") && data2.showLights.includes("SIGNAL_R")) {
-        hazard.src = "./images/hazard_on.png";
+        hazard.classList.add("active");
+    } else if (data2.showLights.includes("SIGNAL_L")) {
+        signalL.classList.add("active");
+    } else if (data2.showLights.includes("SIGNAL_R")) {
+        signalR.classList.add("active");
     }
-    else {
-        hazard.src = "./images/hazard_off.png";
-    };
 
-    if (data2.showLights.includes("TC")) {
-        tc.src = "./images/tc_on.png";
-    } else {
-        tc.src = "./images/tc_off.png";
-    };
-    
-    if (data2.showLights.includes("ABS")) {
-        abs.src = "./images/abs_on.png";
-    } else {
-        abs.src = "./images/abs_off.png";
-    };
-    
-    if (data2.showLights.includes("LOWBEAM")) {
-        fullbeam.src = "./images/fullbeam_low.png";
-    } else if (data2.showLights.includes("FULLBEAM")) {
-        fullbeam.src = "./images/fullbeam_on.png";
-    } else {
-        fullbeam.src = "./images/fullbeam_off.png";
-    };
-    
-    if (data2.showLights.includes("HANDBRAKE")) {
-        handbrake.src = "./images/handbrake_on.png";
-    } else {
-        handbrake.src = "./images/handbrake_off.png";
-    };
-    
-    if (data2.showLights.includes("OILWARN")) {
-        oilWarn.src = "./images/oilWarn_on.png";
-    } else {
-        oilWarn.src = "./images/oilWarn_off.png";
-    };
+    // Update warning lights
+    updateWarningLight("tc", data2.showLights.includes("TC"));
+    updateWarningLight("abs", data2.showLights.includes("ABS"));
+    updateWarningLight("fullbeam", data2.showLights.includes("FULLBEAM") || data2.showLights.includes("LOWBEAM"));
+    updateWarningLight("handbrake", data2.showLights.includes("HANDBRAKE"));
 
-    if (data2.showLights.includes("CHECK")) {
-        check.src = "./images/check_on.png";
+    // Handle battery/electrical failure mode
+    if (data2.showLights.includes("BATTERY")) {
+        document.body.classList.add("electrical-failure");
     } else {
-        check.src = "./images/check_off.png";
-    };
+        document.body.classList.remove("electrical-failure");
+    }
+}
 
-    if (data2.engTemp >= 130) {
-        waterWarn.src = "./images/waterWarn_on2.png";
-    } else if (data2.engTemp >= 110) {
-        waterWarn.src = "./images/waterWarn_on1.png";
-    } else {
-        waterWarn.src = "./images/waterWarn_off.png";
-    };
+function updateWarningLight(elementId, isActive) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        if (isActive) {
+            element.classList.add("active");
+        } else {
+            element.classList.remove("active");
+        }
+    }
+}
 
-    if (data2.fuel <= 0.10 && !data2.showLights.includes("BATTERY")) {
-        fuelWarn.src = "./images/fuel_on.png";
-    } else {
-        fuelWarn.src = "./images/fuel_off.png";
-    };
+// Legacy compatibility functions (for any old code that might call these)
+window.updateSpeedoNumbers = function() { /* deprecated */ };
+window.genRpmNumbers = function() { /* deprecated */ };
+window.genSpeedoNumbers = function() { /* deprecated */ };
+window.genSpeedoNumbersExtra = function() { /* deprecated */ };
+window.genSpeedoNumbersExtra_What_The_F_Bro = function() { /* deprecated */ };
+window.genOilTempNumbers = function() { /* deprecated */ };
+window.genFuelNumbers = function() { /* deprecated */ };
+window.genWaterNumbers = function() { /* deprecated */ };
+window.genBoostNumbers = function() { /* deprecated */ };
+window.updateTickColor = function() { /* deprecated */ };
 
-    updateTickColor(speed);
-};
+console.log("Dashboard initialized with Chart.js gauges");
 
 function editClassProperty(selector, property, value) {
     document.querySelectorAll(selector).forEach(el => {
@@ -818,3 +706,16 @@ function genBoostNegative() {
         turboMeter.appendChild(tickElement);
     });
 };
+
+function initializeDashboard() {
+    genRpmNumbers();
+    genSpeedoNumbers();
+    genSpeedoNumbersExtra();
+    genSpeedoNumbersExtra_What_The_F_Bro();
+    genOilTempNumbers();
+    genFuelNumbers();
+    genWaterNumbers();
+    genBoostNumbers();
+}
+
+document.addEventListener('DOMContentLoaded', initializeDashboard);

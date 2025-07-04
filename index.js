@@ -102,9 +102,9 @@ app.get("/", (req, res) => {
 });
 
 // Start the dashboard site
-serverhttp.listen(dashboardPort, () => {
-    console.log(`Dashboard running at \x1b[0;94mhttp://${host}:${dashboardPort}\x1b[0m`);
+serverhttp.listen(dashboardPort, "0.0.0.0", () => {
+    console.log(`Dashboard running at [0;94mhttp://${host}:${dashboardPort}[0m`);
     console.log("This widow is required for the dash to function.")
 });
 
-server.bind(outGaugePort);
+server.bind(outGaugePort, "0.0.0.0");
