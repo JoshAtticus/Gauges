@@ -1,19 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Car Data</title>
+    <title>Gauges</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-gauge@0.3.0/dist/chartjs-gauge.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="./js/main.js" defer></script>
-    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"
+        integrity="sha384-mkQ3/7FUtcGyoppY6bz/PORYoGqOl7/aSUMn2ymDOJcapfS6PHqxhRTMh1RR0Q6+"
+        crossorigin="anonymous"></script>
+    <script src="/js/main.js" defer></script>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
+
 <body>
     <!-- Turn signals -->
     <div id="arrowLeft" class="turn-signal left"><i class="fas fa-arrow-left"></i></div>
@@ -32,7 +38,7 @@
         <div class="center-info">
             <div id="speedDisplay" class="digital-speed">0</div>
             <div id="gearDisplay" class="gear-display">N</div>
-            
+
             <!-- Warning lights -->
             <div class="warning-lights">
                 <div id="tc" class="warning-light"><i class="fas fa-car-side"></i></div>
@@ -72,7 +78,7 @@
     <script>
         // Initialize gauges
         let speedGauge, rpmGauge;
-        
+
         // Speed gauge
         const speedCtx = document.getElementById('speedGauge').getContext('2d');
         speedGauge = new Chart(speedCtx, {
@@ -122,15 +128,16 @@
         });
 
         // Update functions for compatibility
-        window.updateSpeedGauge = function(speed) {
+        window.updateSpeedGauge = function (speed) {
             speedGauge.data.datasets[0].data = [speed, 240 - speed];
             speedGauge.update('none');
         };
 
-        window.updateRpmGauge = function(rpm) {
+        window.updateRpmGauge = function (rpm) {
             rpmGauge.data.datasets[0].data = [rpm, 8000 - rpm];
             rpmGauge.update('none');
         };
     </script>
 </body>
+
 </html>
